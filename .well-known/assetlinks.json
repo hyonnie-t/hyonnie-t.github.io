@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "io.github.hyonniet.bookshelf",
+    "sha256_cert_fingerprints": ["23:EF:98:73:7C:38:DF:84:44:00:14:7F:EA:D8:44:87:51:8D:4E:05:5B:4C:82:12:75:FE:AE:C5:79:43:1D:52"]
+  }
+}]
