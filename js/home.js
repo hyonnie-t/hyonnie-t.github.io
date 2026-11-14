@@ -43,7 +43,9 @@ function rise(nodes) {
   nodes.forEach((n, i) => { n.classList.add('rise'); n.style.setProperty('--d', `${Math.min(i, 6) * 0.05}s`); io.observe(n); });
 }
 
-const card = (a) => el('li', null, ext(el('a', { href: a.u },
+// 수업 웹앱은 미리보기 모드로 연다: 9개 앱 모두 ?preview=1이면 학번 없이 끝까지 해 볼 수 있고 아무것도 저장하지 않는다(블로그 공유 링크와 같은 방식)
+const PREVIEW = '?preview=1';
+const card = (a, q = '') => el('li', null, ext(el('a', { href: a.u + q },
   a.img === false ? null : el('div', { className: 'thumb' }, el('img', { src: a.u + 'og-cover.jpg', alt: '', loading: 'lazy', decoding: 'async', width: 1200, height: 630,
     onerror() { this.closest('.thumb').remove(); } })), // 그림을 못 받으면 빈 상자도 같이 뺀다
   el('span', { className: 'card-t', textContent: a.t }),
@@ -66,12 +68,12 @@ function renderHome(h) {
     const hid = `apps-g${i}`;
     return el('div', { className: 'group', role: 'group' },
       el('h3', { id: hid }, g, ' ', el('span', { textContent: `${list.length}개` })),
-      el('ul', { className: 'apps' }, list.map(card)));
+      el('ul', { className: 'apps' }, list.map((a) => card(a, PREVIEW))));
   }));
   [...$('app-groups').children].forEach((g, i) => g.setAttribute('aria-labelledby', `apps-g${i}`));
   // 묶음마다 첫 앱이 대표(lead): 그림은 대표만, 나머지는 글 목록(css)
   document.querySelectorAll('#app-groups .apps').forEach((ul) => ul.firstElementChild?.classList.add('lead'));
-  $('guide-list').replaceChildren(...h.guides.map(card));
+  $('guide-list').replaceChildren(...h.guides.map((g) => card(g)));
   $('acts').replaceChildren(...h.reading.map((r) => el('li', null,
     el('span', { className: 'g', textContent: r.g }), el('h3', { textContent: r.t }), el('p', { textContent: r.x }))));
   rise([...document.querySelectorAll('#app-groups .apps > li'), ...$('acts').children, ...$('guide-list').children]);
