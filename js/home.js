@@ -115,7 +115,11 @@ const thinOf = (id) => ({ mh: 195 + Math.abs(hash('mh' + id)) % 46, r: 0.06 + (M
 function addRealImg(a, real, onReal) {
   const img = el('img', { className: 'real-img', alt: '', decoding: 'async' });
   img.referrerPolicy = 'no-referrer';
-  const back = () => { img.remove(); a.classList.remove('real'); a.style.setProperty('--r', thinOf(a.dataset.id).r); }; // 못 받으면 색 책등으로
+  const back = () => { // 못 받으면 색 책등의 키·두께로
+    const t = thinOf(a.dataset.id);
+    img.remove(); a.classList.remove('real');
+    a.style.setProperty('--h', `${realH(t.mh)}px`); a.style.setProperty('--r', t.r);
+  };
   img.onerror = back;
   img.onload = () => { if (notSpine(img)) return back(); a.classList.add('real-on'); onReal(); };
   img.src = Y24_IMG(real.no);
