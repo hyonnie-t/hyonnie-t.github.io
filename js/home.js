@@ -4,7 +4,7 @@
 
 const SHELF = 'https://hyonnie-t.github.io/bookshelf/';
 const SHELF_DATA = SHELF + 'data/';
-const SPINES_MAX = 18;
+const SPINES_MAX = 44; // 실물 책등은 얇아서(대부분 14~19px) PC 선반 한 줄을 채우려면 40권 넘게 꽂아야 한다
 const REVIEWS_MAX = 3;
 const POSTS_MAX = 4;
 
@@ -92,23 +92,57 @@ function watchSwipe(shelf, hint) {
   else addEventListener('resize', check);
 }
 
-// 책등: 읽는 중인 책 + 다 읽은 날(fd)이 최근인 책. 색은 책장 앱이 표지에서 뽑은 색
-function renderShelf(pub, spines) {
+// 실물 책등(책장 앱 js/app.js realOf와 같은 규칙, 2026-11-14 효니 요청 «대표 홈페이지도 예스24 책등으로»):
+// y24.json의 y[id]=[예스24 상품 번호, 책등 그림 가로/세로, 실물 키 mm(모르면 0)]. 주인이 고른 판은 공개본 책의 y24(배열=그 판, 0=색 책등).
+// 그림은 저장하지 않고 볼 때 예스24에서 불러온다. 못 찾았거나 못 받은 책은 색 책등(spines.json)
+const Y24_IMG = (no) => `https://image.yes24.com/goods/${no}/SIDE/${(window.devicePixelRatio || 1) > 2 ? 'XL' : 'L'}`;
+const notSpine = (img) => { const r = img.naturalWidth / img.naturalHeight; return !(r >= 0.02 && r <= 0.35); }; // «이미지 없음» 그림 거르기
+function realOf(b, y24) {
+  const base = y24[b.id];
+  if (Array.isArray(b.y24)) {
+    const [no, r] = b.y24;
+    return /^\d+$/.test(String(no)) && r > 0 ? { no: String(no), r: +r, mh: base && String(base[0]) === String(no) ? +base[2] || 0 : 0 } : null;
+  }
+  if (b.y24 === 0) return null;
+  return base && /^\d+$/.test(String(base[0])) && base[1] > 0 ? { no: String(base[0]), r: +base[1], mh: +base[2] || 0 } : null;
+}
+// 키: 실물 265mm 이상이면 선반 끝(폰 192px, 큰 화면은 css가 4/3배), 모르면 210mm
+const realH = (mh) => Math.max(120, Math.min(192, Math.round((mh || 210) * 192 / 265)));
+const hash = (s) => [...String(s)].reduce((h, c) => (h * 31 + c.codePointAt(0)) | 0, 7);
+// 색 책등도 실물처럼: 키는 책마다 195~240mm, 두께는 키의 6~12%
+const thinOf = (id) => ({ mh: 195 + Math.abs(hash('mh' + id)) % 46, r: 0.06 + (Math.abs(hash('thick' + id)) % 7) * 0.01 });
+
+function addRealImg(a, real, onReal) {
+  const img = el('img', { className: 'real-img', alt: '', decoding: 'async' });
+  img.referrerPolicy = 'no-referrer';
+  const back = () => { img.remove(); a.classList.remove('real'); a.style.setProperty('--r', thinOf(a.dataset.id).r); }; // 못 받으면 색 책등으로
+  img.onerror = back;
+  img.onload = () => { if (notSpine(img)) return back(); a.classList.add('real-on'); onReal(); };
+  img.src = Y24_IMG(real.no);
+  a.classList.add('real');
+  a.append(img);
+}
+
+// 책등: 읽는 중인 책 + 다 읽은 날(fd)이 최근인 책
+function renderShelf(pub, spines, y24) {
   const books = (pub.books || []).filter((b) => (b.k || 'book') === 'book' && b.t);
   const reading = books.filter((b) => b.st === 'reading').slice(0, 4);
   const done = books.filter((b) => b.fd && b.st !== 'reading').sort((a, b) => String(b.fd).localeCompare(String(a.fd)));
   const pick = [...reading, ...done].slice(0, SPINES_MAX);
   const shelf = $('shelf');
-  shelf.replaceChildren(...pick.map((b, i) => {
+  const credit = ext(el('a', { className: 'y24-credit', href: 'https://www.yes24.com/', textContent: '책등 사진: 예스24', hidden: true })); // 예스24 이용약관 제6조 출처 표기
+  shelf.replaceChildren(...pick.map((b) => {
     const c = spines[b.id];
-    const len = [...b.t].length;
+    const real = realOf(b, y24);
+    const thin = thinOf(b.id);
     const a = ext(el('a', { className: 'spine' + (b.st === 'reading' ? ' reading' : ''), href: `${SHELF}#book/${encodeURIComponent(b.id)}`,
       title: `${b.t}${b.a ? ' · ' + b.a : ''}` }, el('span', { textContent: b.t })));
+    a.dataset.id = b.id;
     a.setAttribute('aria-label', `${b.t}${b.st === 'reading' ? ' (읽는 중)' : ''} — 책장에서 열기`);
-    a.style.setProperty('--w', `${len > 12 ? 48 : len > 6 ? 40 : 32}px`); // 8pt 눈금: 제목 길이로 책 두께
-    a.style.setProperty('--h', `${[184, 168, 176, 192, 160][i % 5]}px`); // 8pt 눈금: 책 키를 조금씩 다르게
-    if (len > 9) a.classList.add('long'); // 긴 제목은 글자를 줄여 끝까지 보이게
+    a.style.setProperty('--h', `${realH(real ? real.mh : thin.mh)}px`);
+    a.style.setProperty('--r', real ? real.r : thin.r);
     if (c) { a.style.setProperty('--sb', c[0]); a.style.setProperty('--sf', c[1]); if (c[2]) a.style.setProperty('--sa', c[2]); }
+    if (real) addRealImg(a, real, () => { credit.hidden = false; });
     return a;
   }));
   shelf.removeAttribute('aria-busy');
@@ -119,7 +153,7 @@ function renderShelf(pub, spines) {
   $('shelf-note').replaceChildren(
     reading.length ? el('span', { className: 'legend', textContent: '위에 책갈피가 꽂힌 책은 지금 읽는 중' }) : null,
     el('span', { textContent: '책등을 누르면 책장에서 그 책이 열려요.' }),
-    hint);
+    hint, credit);
   watchSwipe(shelf, hint);
 
   // 최근 서평: 인스타그램에 올린 서평(티스토리 글은 tb로 시작해 뺌)
@@ -154,6 +188,9 @@ function shelfFailed() {
 
 getJSON('data/home.json').then(renderHome).catch((e) => console.error(e));
 getJSON('data/blog.json').then(renderBlog).catch((e) => console.error(e));
-Promise.all([getJSON(SHELF_DATA + 'public.json'), getJSON(SHELF_DATA + 'spines.json').then((x) => x.c || {}).catch(() => ({}))])
-  .then(([pub, spines]) => renderShelf(pub, spines))
+Promise.all([
+  getJSON(SHELF_DATA + 'public.json'),
+  getJSON(SHELF_DATA + 'spines.json').then((x) => x.c || {}).catch(() => ({})),
+  getJSON(SHELF_DATA + 'y24.json').then((x) => x.y || {}).catch(() => ({})), // 없으면 모두 색 책등
+]).then(([pub, spines, y24]) => renderShelf(pub, spines, y24))
   .catch((e) => { console.error(e); shelfFailed(); });

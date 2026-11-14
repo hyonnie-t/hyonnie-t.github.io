@@ -90,13 +90,15 @@ ul, ol { padding: 0; list-style: none; }
 .shelf .wait a { color: var(--accent); }
 @media (min-width: 1024px) { .shelf { min-height: 288px; } } /* 큰 화면 책 키 +64 */
 @media (min-width: 1120px) { .shelf { justify-content: center; overflow: visible; } }
+/* 책등 크기: 키 --h(실물 mm 비례), 두께 = 키 × --r(예스24 책등 그림 비율, 색 책등은 키의 6~12%). 큰 화면은 4/3배 */
 .spine {
-  flex: 0 0 var(--w, 40px); width: var(--w, 40px); height: var(--h, 176px);
+  --size: var(--h, 176px);
+  flex: none; height: var(--size); width: max(18px, calc(var(--size) * var(--r, 0.08))); /* 8pt 예외: 실물 두께라 눈금에 맞추지 않음 */
   background: var(--sb, var(--line)); color: var(--sf, var(--ink));
   display: flex; align-items: center; justify-content: flex-start;
   padding: var(--space-3) 0 var(--space-2);
-  writing-mode: vertical-rl; text-orientation: mixed;
-  font-size: 14px; font-weight: 700; line-height: 1.4; text-decoration: none;
+  writing-mode: vertical-rl; text-orientation: upright; /* 로마자도 바로 세움: «J»가 누우면 «ㄴ»처럼 읽힘 */
+  font-size: 12px; font-weight: 700; line-height: 1.2; text-decoration: none;
   border-radius: 2px 2px 0 0; /* 8pt 예외: 책 모서리는 거의 각지게 */
   box-shadow: inset -3px 0 0 rgb(0 0 0 / 12%), inset 2px 0 0 rgb(255 255 255 / 10%), inset 0 0 0 1px rgb(128 128 128 / 18%); /* 책 두께감 + 바탕과 비슷한 책등도 윤곽 */
   position: relative; overflow: hidden; white-space: nowrap;
@@ -104,11 +106,15 @@ ul, ol { padding: 0; list-style: none; }
   transition: transform .25s cubic-bezier(.2, .8, .2, 1);
 }
 .spine span { overflow: hidden; text-overflow: ellipsis; max-height: 100%; }
-.spine.long { font-size: 12px; }
 @media (min-width: 1024px) {
-  .spine { width: calc(var(--w, 40px) + 8px); flex-basis: calc(var(--w, 40px) + 8px); height: calc(var(--h, 176px) + 64px); font-size: 16px; }
-  .spine.long { font-size: 14px; }
+  .spine { --size: calc(var(--h, 176px) * 4 / 3); font-size: 14px; }
 }
+/* 실물 책등: 색 책등 위에 예스24 사진을 겹치고, 다 받으면 사진만 보인다(못 받으면 js가 사진을 뺌) */
+.spine.real { width: max(14px, calc(var(--size) * var(--r))); }
+.real-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; opacity: 0; transition: opacity .3s; }
+.real-on .real-img { opacity: 1; }
+.real-on span, .real-on::after { visibility: hidden; }
+.spine.reading::before { z-index: 1; } /* 책갈피는 사진 위에 */
 .spine::after { content: ""; position: absolute; left: 0; right: 0; bottom: var(--space-4); height: 4px; background: var(--sa, transparent); opacity: .8; } /* 책등 아래 띠 */
 .spine.reading { padding-top: var(--space-5); }
 .spine.reading::before, .legend::before {
@@ -123,7 +129,8 @@ ul, ol { padding: 0; list-style: none; }
 .shelf-foot { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--space-2) var(--space-3); padding-top: var(--space-3); font-size: 14px; color: var(--muted); }
 .shelf-note { display: grid; gap: var(--space-1); }
 .legend::before { display: inline-block; width: 8px; height: 16px; margin-right: var(--space-2); vertical-align: -3px; }
-.swipe[hidden] { display: none; }
+.swipe[hidden], .y24-credit[hidden] { display: none; }
+.y24-credit { color: var(--muted); }
 .btn {
   display: inline-flex; align-items: center; gap: var(--space-2);
   height: 48px; padding: 0 var(--space-4);
