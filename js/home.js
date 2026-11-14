@@ -2,6 +2,10 @@
 // 책장 공개 자료는 책장 앱의 tools/publish.js가 만든 것이라 이미 공개된 것만 들어 있다.
 'use strict';
 
+// 시안 미리보기(?look=a|b|c) — 효니가 고르면 이 줄은 빼고 고른 시안만 남긴다
+const LOOK = new URLSearchParams(location.search).get('look');
+if (/^[abc]$/.test(LOOK || '')) document.documentElement.dataset.look = LOOK;
+
 const SHELF = 'https://hyonnie-t.github.io/bookshelf/';
 const SHELF_DATA = SHELF + 'data/';
 const SPINES_MAX = 44; // 실물 책등은 얇아서(대부분 14~19px) PC 선반 한 줄을 채우려면 40권 넘게 꽂아야 한다
@@ -69,6 +73,11 @@ function renderHome(h) {
       el('ul', { className: 'apps' }, list.map(card)));
   }));
   [...$('app-groups').children].forEach((g, i) => g.setAttribute('aria-labelledby', `apps-g${i}`));
+  // 묶음마다 첫 앱은 대표(lead), 전체 첫 앱은 hero — 그림 크기·배치는 css가 정한다
+  document.querySelectorAll('#app-groups .apps').forEach((ul, i) => {
+    const f = ul.firstElementChild;
+    if (f) { f.classList.add('lead'); if (i === 0) f.classList.add('hero'); }
+  });
   $('guide-list').replaceChildren(...h.guides.map(card));
   $('acts').replaceChildren(...h.reading.map((r) => el('li', null,
     el('span', { className: 'g', textContent: r.g }), el('h3', { textContent: r.t }), el('p', { textContent: r.x }))));
