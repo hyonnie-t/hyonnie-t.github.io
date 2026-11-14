@@ -14,7 +14,8 @@
 - `index.html` / `css/style.css` / `js/home.js` / `favicon.svg`
 - `data/home.json` — 원고(소개·링크·수업 웹앱·독서교육 활동·안내). 글은 여기만 고치면 된다.
 - `data/blog.json` — 블로그 최근 글. `node tools/update-blog.js`로 RSS에서 다시 받는다(브라우저에서 RSS를 바로 못 읽음). 대학원 분류 글은 뺀다(`SKIP_CATEGORIES`).
-- 책장 책·서평은 책장 앱의 공개 자료(`/bookshelf/data/public.json`, `spines.json`)를 실행할 때 읽는다. 복사하지 않는다. 책장 자료 모양이 바뀌면 `js/home.js`의 `renderShelf`를 같이 고친다.
+- 책장 책·서평은 책장 앱의 공개 자료(`/bookshelf/data/public.json`, `spines.json`, `y24.json`)를 실행할 때 읽는다. 복사하지 않는다. 책장 자료 모양이 바뀌면 `js/home.js`의 `renderShelf`·`realOf`를 같이 고친다.
+- 첫 화면은 «서가»(2026-11-14): 한 줄 소개 + 책장 권수, 선반에 읽는 중 + 최근 다 읽은 책 44권. 책등은 책장 앱과 같은 규칙의 예스24 실물 책등 사진(상품 번호만 `y24.json`에, 그림은 볼 때 예스24에서 불러옴, 공개본 책의 `y24`가 우선), 못 찾거나 못 받은 책은 색 책등. 사진이 하나라도 보이면 «책등 사진: 예스24» 출처를 보인다(예스24 이용약관 제6조).
 - 미리보기: `node tools/serve.js` → http://localhost:5180/
 
 ## 규칙
