@@ -42,6 +42,14 @@ const iso = (s) => { const d = new Date(s); return isNaN(d) ? '' : d.toISOString
   // 분류 이름은 거르는 데만 쓰고 공개 파일에는 남기지 않는다
   const out = { at: new Date().toISOString().slice(0, 10), posts: items.slice(0, KEEP).map(({ c, ...p }) => p) };
   const file = path.join(__dirname, '..', 'data', 'blog.json');
+  let old = null;
+  try { old = JSON.parse(fs.readFileSync(file, 'utf8')); } catch (e) { /* 처음이면 없음 */ }
+  if (old && JSON.stringify(old.posts) === JSON.stringify(out.posts)) {
+    console.log('blog.json: 바뀐 글 없음 (' + out.posts.length + '개 그대로)');
+    return; // 날짜만 바뀐 커밋을 만들지 않게 파일을 그대로 둔다
+  }
+  const before = new Set(((old && old.posts) || []).map((p) => p.u));
+  console.log('새 글 ' + out.posts.filter((p) => !before.has(p.u)).length + '개');
   fs.writeFileSync(file, JSON.stringify(out, null, 1) + '\n');
   console.log('blog.json: ' + out.posts.length + '개 (' + (out.posts[0] || {}).d + ' 최신)');
 })().catch((e) => { console.error(e.message); process.exit(1); });
