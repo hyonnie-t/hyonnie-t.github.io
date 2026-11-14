@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>효니 · 중학교 역사 교사</title>
+<meta name="description" content="역사 속 사람들의 선택을 학생과 함께 읽는 중학교 역사 교사 효니의 홈페이지. 책장, 서평, 블로그, 수업 웹앱, 독서교육 활동.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="효니 · 중학교 역사 교사">
+<meta property="og:description" content="책장 · 서평 · 블로그 · 수업 웹앱 · 독서교육 활동">
+<meta property="og:url" content="https://hyonnie-t.github.io/">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f7f5f0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#151a1c" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/style.css">
+<script src="js/home.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">본문으로 건너뛰기</a>
+<header class="top">
+  <div class="wrap top-row">
+    <a class="brand" href="#">효니</a>
+    <nav aria-label="구역">
+      <a href="#books">책</a>
+      <a href="#blog">글</a>
+      <a href="#apps">수업</a>
+      <a href="#reading">독서교육</a>
+      <a href="#guides">안내</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <section class="hero wrap" aria-labelledby="hero-name">
+    <p class="role" id="role">중학교 역사 교사</p>
+    <h1 id="hero-name">효니</h1>
+    <p class="lead" id="lead"></p>
+    <div class="about" id="about"></div>
+    <ul class="links" id="links"></ul>
+  </section>
+
+  <section class="block wrap" id="books" aria-labelledby="books-h">
+    <div class="block-head">
+      <h2 id="books-h">책장에서</h2>
+      <a class="more" href="https://hyonnie-t.github.io/bookshelf/">책장 전체 보기</a>
+    </div>
+    <p class="sub" id="shelf-count">최근에 꽂은 책들이에요. 책등을 누르면 책장에서 열려요.</p>
+    <div class="shelf" id="shelf" aria-busy="true"><p class="wait">책을 꺼내 오는 중…</p></div>
+
+    <h3 class="minor">최근 서평 <span>인스타그램 @hyonnie_books</span></h3>
+    <ul class="reviews" id="reviews"></ul>
+  </section>
+
+  <section class="block wrap" id="blog" aria-labelledby="blog-h">
+    <div class="block-head">
+      <h2 id="blog-h">블로그 새 글</h2>
+      <a class="more" href="https://0hyonnie.tistory.com/">블로그로 가기</a>
+    </div>
+    <ul class="posts" id="posts"></ul>
+  </section>
+
+  <section class="block wrap" id="apps" aria-labelledby="apps-h">
+    <div class="block-head">
+      <h2 id="apps-h">수업 웹앱</h2>
+    </div>
+    <p class="sub" id="apps-note"></p>
+    <ul class="apps" id="app-list"></ul>
+  </section>
+
+  <section class="block wrap" id="reading" aria-labelledby="reading-h">
+    <div class="block-head">
+      <h2 id="reading-h">독서교육 활동</h2>
+    </div>
+    <p class="sub">책을 매개로 역사 속 인간의 선택을 해석하게 하는 수업들이에요.</p>
+    <ol class="acts" id="acts"></ol>
+  </section>
+
+  <section class="block wrap" id="guides" aria-labelledby="guides-h">
+    <div class="block-head">
+      <h2 id="guides-h">선생님들께</h2>
+    </div>
+    <ul class="apps guides" id="guide-list"></ul>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p>© 효니 · 이 페이지의 글과 링크는 모두 이미 공개된 것만 모았어요.</p>
+  </div>
+</footer>
+</body>
+</html>
