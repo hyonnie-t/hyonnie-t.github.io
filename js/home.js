@@ -1,4 +1,4 @@
-// 효니 홈페이지: 원고(data/home.json)·블로그(data/blog.json)는 이 레포에서, 책장 책·서평은 책장 앱의 공개 자료에서 읽는다.
+// 효니 홈페이지 «서가»: 원고(data/home.json)·블로그(data/blog.json)는 이 레포에서, 책장 책·서평은 책장 앱의 공개 자료에서 읽는다.
 // 책장 공개 자료는 책장 앱의 tools/publish.js가 만든 것이라 이미 공개된 것만 들어 있다.
 'use strict';
 
@@ -43,24 +43,36 @@ function rise(nodes) {
   nodes.forEach((n, i) => { n.classList.add('rise'); n.style.setProperty('--d', `${Math.min(i, 6) * 0.05}s`); io.observe(n); });
 }
 
+const card = (a) => el('li', null, ext(el('a', { href: a.u },
+  a.img === false ? null : el('div', { className: 'thumb' }, el('img', { src: a.u + 'og-cover.jpg', alt: '', loading: 'lazy', decoding: 'async', width: 1200, height: 630,
+    onerror() { this.closest('.thumb').remove(); } })), // 그림을 못 받으면 빈 상자도 같이 뺀다
+  el('span', { className: 'card-t', textContent: a.t }),
+  el('span', { className: 'card-x', textContent: a.x }))));
+
 function renderHome(h) {
-  $('role').textContent = h.role;
   $('hero-name').textContent = h.name;
+  $('role').textContent = '· ' + h.role;
   $('lead').textContent = h.lead;
-  $('about').replaceChildren(...h.about.map((p) => el('p', { textContent: p })));
+  $('about-text').replaceChildren(...h.about.map((p) => el('p', { textContent: p })));
   $('links').replaceChildren(...h.links.map((l) => el('li', null,
     ext(el('a', { href: l.url }, icon(l.key), el('b', { textContent: l.label }), el('span', { textContent: l.sub }))))));
 
-  const card = (a) => el('li', null, ext(el('a', { href: a.u },
-    a.img === false ? null : el('div', { className: 'thumb' }, el('img', { src: a.u + 'og-cover.jpg', alt: '', loading: 'lazy', decoding: 'async', width: 1200, height: 630,
-      onerror() { this.closest('.thumb').remove(); } })), // 그림을 못 받으면 빈 상자도 같이 뺀다
-    el('div', { className: 'card-body' }, el('span', { className: 'chip', textContent: a.g }), el('span', { className: 'card-t', textContent: a.t }), el('span', { className: 'card-x', textContent: a.x })))));
+  // 수업 웹앱: 원고에 적힌 순서대로 학년(g)별로 묶는다
+  const groups = new Map();
+  h.apps.forEach((a) => { if (!groups.has(a.g)) groups.set(a.g, []); groups.get(a.g).push(a); });
+  $('apps-n').textContent = `${h.apps.length}개`;
   $('apps-note').textContent = h.appsNote || '';
-  $('app-list').replaceChildren(...h.apps.map(card));
+  $('app-groups').replaceChildren(...[...groups].map(([g, list], i) => {
+    const hid = `apps-g${i}`;
+    return el('div', { className: 'group', role: 'group' },
+      el('h3', { id: hid }, g, ' ', el('span', { textContent: `${list.length}개` })),
+      el('ul', { className: 'apps' }, list.map(card)));
+  }));
+  [...$('app-groups').children].forEach((g, i) => g.setAttribute('aria-labelledby', `apps-g${i}`));
   $('guide-list').replaceChildren(...h.guides.map(card));
   $('acts').replaceChildren(...h.reading.map((r) => el('li', null,
-    el('h3', { textContent: r.t }), el('span', { className: 'g', textContent: r.g }), el('p', { textContent: r.x }))));
-  rise([...$('app-list').children, ...$('acts').children, ...$('guide-list').children]);
+    el('span', { className: 'g', textContent: r.g }), el('h3', { textContent: r.t }), el('p', { textContent: r.x }))));
+  rise([...document.querySelectorAll('#app-groups .apps > li'), ...$('acts').children, ...$('guide-list').children]);
 }
 
 function renderBlog(b) {
@@ -72,7 +84,15 @@ function renderBlog(b) {
   rise([...$('posts').children]);
 }
 
-// 책등: 다 읽은 날(fd)이 최근인 책 + 읽는 중인 책. 색은 책장 앱이 표지에서 뽑은 색
+// 선반이 화면보다 넓으면(폰·태블릿) «옆으로 넘겨 보기» 안내를 보인다
+function watchSwipe(shelf, hint) {
+  const check = () => { hint.hidden = shelf.scrollWidth <= shelf.clientWidth + 1; };
+  check();
+  if ('ResizeObserver' in window) new ResizeObserver(check).observe(shelf);
+  else addEventListener('resize', check);
+}
+
+// 책등: 읽는 중인 책 + 다 읽은 날(fd)이 최근인 책. 색은 책장 앱이 표지에서 뽑은 색
 function renderShelf(pub, spines) {
   const books = (pub.books || []).filter((b) => (b.k || 'book') === 'book' && b.t);
   const reading = books.filter((b) => b.st === 'reading').slice(0, 4);
@@ -83,7 +103,7 @@ function renderShelf(pub, spines) {
     const c = spines[b.id];
     const len = [...b.t].length;
     const a = ext(el('a', { className: 'spine' + (b.st === 'reading' ? ' reading' : ''), href: `${SHELF}#book/${encodeURIComponent(b.id)}`,
-      textContent: b.t, title: `${b.t}${b.a ? ' · ' + b.a : ''}` }));
+      title: `${b.t}${b.a ? ' · ' + b.a : ''}` }, el('span', { textContent: b.t })));
     a.setAttribute('aria-label', `${b.t}${b.st === 'reading' ? ' (읽는 중)' : ''} — 책장에서 열기`);
     a.style.setProperty('--w', `${len > 12 ? 48 : len > 6 ? 40 : 32}px`); // 8pt 눈금: 제목 길이로 책 두께
     a.style.setProperty('--h', `${[184, 168, 176, 192, 160][i % 5]}px`); // 8pt 눈금: 책 키를 조금씩 다르게
@@ -92,8 +112,15 @@ function renderShelf(pub, spines) {
     return a;
   }));
   shelf.removeAttribute('aria-busy');
-  if (reading.length) shelf.after(el('p', { className: 'shelf-legend' }, el('i'), '위에 띠가 있는 책은 지금 읽는 중'));
-  $('shelf-count').textContent = `책장에 꽂힌 책 ${books.length.toLocaleString('ko-KR')}권 중 최근 책이에요. 책등을 누르면 책장에서 열려요.`;
+
+  $('count-n').textContent = books.length.toLocaleString('ko-KR');
+  $('count').hidden = false;
+  const hint = el('span', { className: 'swipe', textContent: '선반을 옆으로 넘기면 책이 더 있어요.' });
+  $('shelf-note').replaceChildren(
+    reading.length ? el('span', { className: 'legend', textContent: '위에 책갈피가 꽂힌 책은 지금 읽는 중' }) : null,
+    el('span', { textContent: '책등을 누르면 책장에서 그 책이 열려요.' }),
+    hint);
+  watchSwipe(shelf, hint);
 
   // 최근 서평: 인스타그램에 올린 서평(티스토리 글은 tb로 시작해 뺌)
   const byId = new Map(books.map((b) => [b.id, b]));
@@ -119,7 +146,7 @@ function reviewsEmpty() {
     ext(el('a', { href: 'https://www.instagram.com/hyonnie_books/', textContent: '인스타그램 @hyonnie_books' })), '에서 볼 수 있어요.'));
 }
 function shelfFailed() {
-  $('shelf-count').textContent = '책장을 지금 불러오지 못했어요.';
+  $('shelf-note').textContent = '책장을 지금 불러오지 못했어요.';
   $('shelf').replaceChildren(el('p', { className: 'wait' }, ext(el('a', { href: SHELF, textContent: '책장에서 직접 보기' }))));
   $('shelf').removeAttribute('aria-busy');
   reviewsEmpty();
