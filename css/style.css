@@ -198,7 +198,7 @@ h2 .n { margin-right: auto; font-size: 14px; font-weight: 400; color: var(--mute
 .item-x { font-size: 14px; color: var(--muted); line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 /* 서평: 큰 따옴표 + 첫 문장이 주인공, 책 제목·날짜는 작게 */
 #reviews a { grid-template-columns: auto 1fr; column-gap: var(--space-3); padding: var(--space-4) 0; }
-#reviews a::before { content: "“"; grid-row: 1 / span 3; font: 400 48px/1 var(--title); color: var(--accent); }
+#reviews a::before { content: "“"; content: "“" / ""; /* 화면 읽기 프로그램은 따옴표를 읽지 않게(대체 글 없는 브라우저는 첫 줄) */ grid-row: 1 / span 3; font: 400 48px/1 var(--title); color: var(--accent); }
 #reviews .item-x { order: 1; font: 400 20px/1.6 var(--title); color: var(--ink); -webkit-line-clamp: 3; }
 #reviews .item-t { order: 2; font-size: 14px; }
 #reviews .item-d { order: 3; }

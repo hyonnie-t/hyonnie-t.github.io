@@ -69,11 +69,8 @@ function renderHome(h) {
       el('ul', { className: 'apps' }, list.map(card)));
   }));
   [...$('app-groups').children].forEach((g, i) => g.setAttribute('aria-labelledby', `apps-g${i}`));
-  // 묶음마다 첫 앱은 대표(lead), 전체 첫 앱은 hero — 그림 크기·배치는 css가 정한다
-  document.querySelectorAll('#app-groups .apps').forEach((ul, i) => {
-    const f = ul.firstElementChild;
-    if (f) { f.classList.add('lead'); if (i === 0) f.classList.add('hero'); }
-  });
+  // 묶음마다 첫 앱이 대표(lead): 그림은 대표만, 나머지는 글 목록(css)
+  document.querySelectorAll('#app-groups .apps').forEach((ul) => ul.firstElementChild?.classList.add('lead'));
   $('guide-list').replaceChildren(...h.guides.map(card));
   $('acts').replaceChildren(...h.reading.map((r) => el('li', null,
     el('span', { className: 'g', textContent: r.g }), el('h3', { textContent: r.t }), el('p', { textContent: r.x }))));
